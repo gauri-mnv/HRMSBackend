@@ -5,16 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConfig } from '../config/jwt.config'; 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RevokedToken } from './entities/revoked-token.entity';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 
 // const expiresIn =config.get<string>('JWT_EXPIRES_IN') ?? '1w';
 
 @Module({
   imports: [
-
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([User, Role, RevokedToken]),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -27,21 +28,24 @@ import { RevokedToken } from './entities/revoked-token.entity';
     //   },
     // }),
   
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET')!,
-        signOptions: {
-          expiresIn:config.get<any>('JWT_EXPIRES_IN') ,
-        },
-      }),
+    JwtModule.register({
+      // imports: [ConfigModule.forRoot({ isGlobal: true }),],
+      // inject: [ConfigService],
+      // useFactory: (config: ConfigService) => ({
+      //   secret: config.get<string>('JWT_SECRET')!,
+      //   signOptions: {
+      //     expiresIn:config.get<any>('JWT_EXPIRES_IN') ,
+      //   },
+      // }),
+      secret: process.env.JWT_SECRET || 'secretkey',
+      signOptions: { expiresIn: '1d' },
+
     }),
 
 
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [JwtModule],
+  providers: [AuthService,JwtStrategy],
+  exports: [JwtModule,PassportModule],
 })
 export class AuthModule {}

@@ -1,13 +1,16 @@
 import { Controller, Post,Req,
-  UseGuards, Body } from '@nestjs/common';
+  UseGuards, Body, 
+  UnauthorizedException,
+  Get} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-
+  
 
   @Post('signup')
   signup(
@@ -27,14 +30,31 @@ export class AuthController {
   signin(@Body('email') email: string, @Body('password') password: string) {
     return this.authService.signin(email, password);
   }
-
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  logout(@Req() req: Request) {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(' ')[1];
-
-    return this.authService.logout(token);
+  @Get('me')
+  getProfile(@Req() req: any) {
+    return req.user;
   }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('logout')
+  // @UseGuards(AuthGuard('jwt'))
+  // async logout(@Req() req: Request) {
+  //   const authHeader = req.headers['authorization'];
+  //   if (!authHeader) {
+  //     throw new UnauthorizedException('Authorization header missing');
+  //   }
+
+  //   const token = authHeader.split(" ")[1]; 
+  //   return this.authService.logout(token);
+  //}
+
+  @Post('logout')
+logout(@Req() req: Request) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return;
+
+  const token = authHeader.split(' ')[1];
+  return this.authService.logout(token);
+}
 
 }

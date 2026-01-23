@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException,ConflictException,
+  BadRequestException, } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
@@ -6,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RevokedToken } from './entities/revoked-token.entity';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +24,9 @@ export class AuthService {
     
     // 1️ Check email uniqueness
     const existingUser = await this.userRepo.findOne({ where: { email } });
-    if (existingUser) throw new UnauthorizedException('Email already in use');
+    if (existingUser) throw new ConflictException(
+      'User with this email already exists. Please login instead.',
+    );
 
      // 2️ Validate role
     const role = await this.roleRepo.findOne({ where: { name: roleName } });
@@ -37,7 +41,7 @@ export class AuthService {
     });
 
     if (roleExists) {
-      throw new UnauthorizedException(
+      throw new ConflictException(
         `${role.name} already exists and cannot be created again`,
       );
     }
@@ -95,15 +99,22 @@ export class AuthService {
 
   //logout 
   async logout(token: string) {
-    const exists = await this.revokedTokenRepo.findOne({
-      where: { token },
-    });
+    console.log("t",token)
+    if (!token) return;
 
-    if (!exists) {
-      await this.revokedTokenRepo.save({ token });
-    }
+  const hashed = createHash('sha256')
+    .update(token)
+    .digest('hex');
 
-    return { message: 'Logged out successfully' };
+  const exists = await this.revokedTokenRepo.findOne({
+    where: { token: hashed },
+  });
+
+  if (!exists) {
+    await this.revokedTokenRepo.save({ token: hashed });
+  }
+
+  return { message: 'Logged out successfully' };
   }
   
 }
