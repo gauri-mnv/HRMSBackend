@@ -5,7 +5,7 @@ import {
     ManyToOne,
     JoinColumn,
   } from 'typeorm';
-  import { Role } from '../../roles/entities/role.entity';
+  import { Role } from '../../roles/role.entity';
   // import { Employee } from '../../employees/entities/employee.entity';
 
   @Entity('users')

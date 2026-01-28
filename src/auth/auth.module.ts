@@ -1,14 +1,17 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { Role } from '../roles/entities/role.entity';
+import { Role } from '../roles/role.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RevokedToken } from './entities/revoked-token.entity';
+import { RevokedToken } from './revoked-token.entity';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtStrategy } from './jwt.strategy';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { EmployeeModule } from 'src/employee/employee.module';
+import { UsersModule } from 'src/users/users.module';
 
 
 // const expiresIn =config.get<string>('JWT_EXPIRES_IN') ?? '1w';
@@ -16,7 +19,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    TypeOrmModule.forFeature([User, Role, RevokedToken]),
+    TypeOrmModule.forFeature([User, Role, RevokedToken ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -37,15 +40,19 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       //     expiresIn:config.get<any>('JWT_EXPIRES_IN') ,
       //   },
       // }),
-      secret: process.env.JWT_SECRET || 'secretkey',
+      secret: process.env.JWT_SECRET ||'secretkey',
       signOptions: { expiresIn: '1d' },
 
     }),
 
-
+    forwardRef(() => EmployeeModule),
+        UsersModule,
+   
   ],
   controllers: [AuthController],
-  providers: [AuthService,JwtStrategy],
-  exports: [JwtModule,PassportModule],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  // exports: [JwtModule,PassportModule],
+  exports: [JwtModule, PassportModule, JwtAuthGuard],
+
 })
 export class AuthModule {}
