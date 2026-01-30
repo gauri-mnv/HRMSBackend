@@ -17,26 +17,29 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RoleEnum } from '../common/enums/role.enum';
 
-@Controller()
+@Controller('emps')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   // GET /emps -> List all employees. (admin)
-  @UseGuards(JwtAuthGuard)
-  @Get('emps')
+  // @UseGuards(JwtAuthGuard)
+  @Get()
   findAll() {
-    return this.employeeService.findAll();
+    //return "hi"
+   return this.employeeService.findAll();
   }
 
   // POST /add_emps -> Create a new employee.
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post('add_emps')
-  create(@Body() dto: CreateEmployeeDto) {
+   create(@Body() dto: CreateEmployeeDto) {
+    //return "emp added";
     return this.employeeService.create(dto);
+  
   }
 
   // POST /emps/from-user/:userId -> Create employee record from existing user (admin).
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
   @Post('emps/from-user/:userId')
   createFromUser(@Param('userId') userId: string) {
@@ -46,11 +49,11 @@ export class EmployeeController {
   // GET /emps/:emp_id -> Retrieve a specific employee.
   @Get('emps/:emp_id')
   findOne(@Param('emp_id') emp_id: string) {
-    return this.employeeService.findOne(Number(emp_id));
+    return this.employeeService.findOne(String(emp_id));
   }
 
   // GET /employee/me -> Retrieve currently logged-in employee (by user id).
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('employee/me')
   findMe(@Req() req: any) {
     return this.employeeService.findByUserId(req.user.userId);
@@ -62,11 +65,11 @@ export class EmployeeController {
     @Param('emp_id') emp_id: string,
     @Body() dto: UpdateEmployeeDto,
   ) {
-    return this.employeeService.update(Number(emp_id), dto);
+    return this.employeeService.update(String(emp_id), dto);
   }
 
   // PATCH /employee/me -> Employee self-service update (limited fields).
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Patch('employee/me')
   updateMe(@Req() req: any, @Body() dto: UpdateEmployeeDto) {
     return this.employeeService.updateByUserId(req.user.userId, dto);
@@ -75,7 +78,7 @@ export class EmployeeController {
   // DELETE /emps/:emp_id -> Soft delete a specific employee.
   @Delete('emps/:emp_id')
   remove(@Param('emp_id') emp_id: string) {
-    return this.employeeService.softDelete(Number(emp_id));
+    return this.employeeService.softDelete(String(emp_id));
   }
 }
 

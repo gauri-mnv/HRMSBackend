@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { DepartmentModule } from './department/department.module';
 
 @Module({
 
@@ -17,6 +18,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     RolesModule,
     EmployeeModule,
     UsersModule,
+    DepartmentModule,
+    
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employee } from './employee.entity';
@@ -6,25 +6,55 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { User } from '../users/entities/user.entity';
 import { RoleEnum } from '../common/enums/role.enum';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class EmployeeService {
+  userRepo: any;
   constructor(
+  
     @InjectRepository(Employee)
     private employeeRepo: Repository<Employee>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    // @InjectRepository(User)
+    // private readonly userRepo: Repository<User>,
+
+    @Inject(forwardRef(() => AuthService))
+    private authService: AuthService,
   ) {}
 
   async findAll() {
-    return this.employeeRepo.find({
-      withDeleted: false,
-      relations: ['role', 'manager', 'user'],
-      order: { emp_id: 'ASC' },
-    });
+    // return this.employeeRepo.find({
+    //   // // withDeleted: false,
+    //   // relations: ['role', 'manager', 'user'],
+    //   // // order: { emp_id: 'ASC' },
+    //   // order: { created_at: 'ASC' },
+
+      
+    // });
+
+    //console.log(this.employeeRepo);
+      const emps = await this.employeeRepo.find({
+        relations: ['role', 'manager', 'user'],
+        order: { created_at: 'ASC' },
+      });
+    
+      return emps.map(e => ({
+        emp_id: e.emp_id,
+        emp_code: e.emp_code,
+        emp_first_name: e.emp_first_name,
+        emp_last_name: e.emp_last_name,
+        emp_email: e.emp_email,
+        emp_status: e.emp_status,
+        role: e.role ? { id: e.role.id, name: e.role.name } : null,
+        manager: e.manager
+          ? { emp_id: e.manager.emp_id, name: e.manager.emp_first_name }
+          : null,
+      }));
+    
+    
   }
 
-  async findOne(emp_id: number) {
+  async findOne(emp_id: string) {
     const emp = await this.employeeRepo.findOne({
       where: { emp_id },
       relations: ['role', 'manager'],
@@ -106,7 +136,7 @@ export class EmployeeService {
 
   
 
-  async update(emp_id: number, dto: UpdateEmployeeDto) {
+  async update(emp_id: string , dto: UpdateEmployeeDto) {
     const employee = await this.findOne(emp_id);
     Object.assign(employee, dto);
     return this.employeeRepo.save(employee);
@@ -134,7 +164,7 @@ export class EmployeeService {
     return this.employeeRepo.save(employee);
   }
 
-  async softDelete(emp_id: number) {
+  async softDelete(emp_id:string) {
     const employee = await this.findOne(emp_id);
     await this.employeeRepo.softRemove(employee);
     return { message: 'Employee deleted successfully' };

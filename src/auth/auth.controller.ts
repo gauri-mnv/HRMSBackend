@@ -28,8 +28,10 @@ export class AuthController {
   //   return this.authService.signin(dto.email, dto.password);
   // }
   @Post('signin')
-  signin(@Body() dto: SigninDto) {
-    return this.authService.signin(dto.email, dto.password);
+  async signin(@Body() body) {
+    const { email, password } = body;
+    console.log("signinData",email, password);
+    return this.authService.signin(email, password);
   }
   @UseGuards(JwtAuthGuard)
   @Get('emp')

@@ -8,9 +8,10 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { UsersModule } from "../users/users.module";
 import { RevokedToken } from 'src/auth/revoked-token.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role,RevokedToken]),
+  imports: [TypeOrmModule.forFeature([Role,RevokedToken,User]),
   UsersModule,AuthModule
 ],
 

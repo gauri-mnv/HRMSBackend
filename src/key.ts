@@ -1,4 +1,4 @@
 export const jwtSecretData = {
-    secret: 'hrmskey',
+    secret: 'secretkey',
     expiresIn: '10d' as string,
   };

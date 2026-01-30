@@ -10,13 +10,23 @@ import { createHash } from 'crypto';
 import { RevokedToken } from '../../auth/revoked-token.entity';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+
   constructor(
+    private jwtService: JwtService,
+    private authService: AuthService,
     @InjectRepository(RevokedToken)
     private readonly revokedTokenRepo: Repository<RevokedToken>,
-    private readonly usersService: UsersService,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
+   
+    // @InjectRepository(RevokedToken) private revokedRepo: Repository<RevokedToken>,
+    // @InjectRepository(User) private userRepo: Repository<User>,
   ) {
     super();
   }
@@ -66,7 +76,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const isValid = (await super.canActivate(context)) as boolean;
   if (!isValid) return false;
 
-  // 3️⃣ Now user is available
+  // 3 Now user is available
   const user = request.user; // <-- comes from JwtStrategy
 
   if (!user) {
@@ -74,6 +84,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 else {
   console.log(user);
+  request.user = user;
+    return true;
+
 }
   
     return super.canActivate(context) as Promise<boolean>;
@@ -81,3 +94,4 @@ else {
   
 
 }
+ 

@@ -4,6 +4,8 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
   } from 'typeorm';
   import { Role } from '../../roles/role.entity';
   // import { Employee } from '../../employees/entities/employee.entity';
@@ -17,14 +19,26 @@ import {
     email: string;
   
     @Column()
-    password: string;
+     password:string;
+    // @Column({ select: false })
+    // password: string;
+
   
     @ManyToOne(() => Role, (role) => role.users)
-    @JoinColumn({ name: 'role_id' })
+    @JoinColumn({ name: 'role_id' })//id present in role table and fk in users table
     role: Role;
 
     // @ManyToOne(() => Employee)
     // @JoinColumn({ name: 'employee_id' })
     // employee: Employee;
+
+    @CreateDateColumn()
+      created_at: Date;
+
+      @UpdateDateColumn()
+      updated_at: Date;
+
+    // static password: string;
+
   }
   

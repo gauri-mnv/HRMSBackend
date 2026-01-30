@@ -1,10 +1,12 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,24 +15,32 @@ import { JwtService } from '@nestjs/jwt';
 import { RevokedToken } from './revoked-token.entity';
 import { createHash } from 'crypto';
 import { Employee } from 'src/employee/employee.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
   
   constructor(
+    @Inject(forwardRef(() => UsersService))private readonly usersService: UsersService,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Role) private roleRepo: Repository<Role>,
     @InjectRepository(Employee) private employeeRepo: Repository<Employee>,
-   
+    private readonly dataSource: DataSource,
     @InjectRepository(RevokedToken)
     private revokedTokenRepo: Repository<RevokedToken>,
     private jwtService: JwtService,
   ) {}
-
+  async validateUser(userId: string) {
+    return this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+  }
   private buildTokens(payload: {
     sub: string;
     email: string;
     role: string;
+    // password?: string;
   }) {
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: '15m',
@@ -44,60 +54,13 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  // Signup
-  // async signup(email: string, password: string, roleName: string) {
-    
-  //   // 1️ Check email uniqueness
-  //   const existingUser = await this.userRepo.findOne({ where: { email } });
-  //   if (existingUser) throw new ConflictException(
-  //     'User with this email already exists. Please login instead.',
-  //   );
-
-  //    // 2️ Validate role
-  //   const role = await this.roleRepo.findOne({ where: { name: roleName } });
-  //   if (!role) throw new UnauthorizedException('Invalid role');
-
-  // // 3️ Enforce UNIQUE roles
-  // const uniqueRoles = ['FOUNDER', 'CO_FOUNDER', 'ADMIN'];
-  // if (uniqueRoles.includes(role.name)) {
-  //   const roleExists = await this.userRepo.findOne({
-  //     where: { role: { id: role.id } },
-  //     relations: ['role'],
-  //   });
-
-  //   if (roleExists) {
-  //     throw new ConflictException(
-  //       `${role.name} already exists and cannot be created again`,
-  //     );
-  //   }
-  // }
-
-  //   // 4️ Hash password
-  //   const hashedPassword = await bcrypt.hash(password, 10);
-
-  //   const user = this.userRepo.create({
-  //      email, 
-  //      password: hashedPassword, 
-  //      role });
-  //   await this.userRepo.save(user);
-
-  //   // 2auto-create employee record
-  //   const employee = this.employeeRepo.create({
-  //     user: user,            
-  //     emp_email: user.email,
-  //     emp_status: 'active',    
-  //   });
-    
-  //   await this.employeeRepo.save(employee);
-
-  //   return { message: `${role.name} User registered successfully` };
-
-
-  // }
-
+  
   async signup(email: string, password: string, roleName: string) {
-    return this.userRepo.manager.transaction(async (manager) => {
-      const existingUser = await manager.findOne(User, { where: { email } });
+    // return this.userRepo.manager.transaction(async (manager) => {
+      return this.dataSource.transaction(async (manager) => {
+        const normalizedEmail = email.toLowerCase();
+
+      const existingUser = await manager.findOne(User, { where: { email:normalizedEmail } });
       if (existingUser) {
         throw new ConflictException('User already exists');
       }
@@ -105,48 +68,78 @@ export class AuthService {
       const role = await manager.findOne(Role, { where: { name: roleName } });
       if (!role) throw new UnauthorizedException('Invalid role');
   
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
+      // const hashedPassword = await bcrypt.hash(password,10)
+      
+      // const hashedPassword =  await bcrypt.hash(password, 10);
+      //   save(hashedPassword);
+        const hashedPassword = await bcrypt.hash(password, 10);
+          // User.password = hashedPassword;
+        console.log(hashedPassword);
+      // const hashedPassword=bcrypt.hash('Password@123', 10).then(console.log);
+    
       const user = manager.create(User, {
-        email,
+        email:normalizedEmail,
         password: hashedPassword,
         role,
       });
+      console.log(hashedPassword, user.password);
       await manager.save(user);
-  
-      const employee = manager.create(Employee, {
-        user,
-        // These fields are required (non-nullable) in `Employee` entity.
-        // Populate minimal defaults so the record is actually created at signup time.
-        emp_email: email,
-        emp_code: `EMP-${Date.now()}`,
-        emp_phone: '',
-        emp_date_of_joining: new Date(),
-        emp_status: 'active',
+
+      console.log(user);
+      const existingEmployee = await manager.findOne(Employee, {
+        where: { user: { id: user.id } },
+        relations: ['user'],
       });
-      await manager.save(employee);
+      
+      if (!existingEmployee) {
+        const employee = manager.create(Employee, {
+          user,
+          emp_email: normalizedEmail,
+          emp_code: `EMP-${Date.now()}`,
+          emp_phone: '',
+          emp_date_of_joining: new Date(),
+          emp_status: 'active',
+        });
+        await manager.save(employee);
+      
   
       return { message: `${role.name} User registered successfully` };
-    });
+    }});
   }
   
 
   // Signin
   async signin(email: string, password: string) {
-    const user = await this.userRepo.findOne({
-      where: { email },
-      relations: ['role'],
-    });
-  
+    const normalizedEmail = email.toLowerCase();
+    // const hash = await bcrypt.hash(password,10)
+    // console.log(hash);
+
+    const user = await this.userRepo
+    .createQueryBuilder('user')
+    .addSelect('user.password') 
+    .leftJoinAndSelect('user.role', 'role')
+    .where('user.email = :email', { email: normalizedEmail })
+    .getOne();
+   // console.log('Signin attempt for email:', email.toLowerCase());
+    // const user = await this.userRepo.findOne({
+    //   where: { email }
+    //   // relations: ['role'],
+    // });
+
+    console.log('User fetched from DB:', user); 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
   
     if (!user.password) {
+      console.log(user);
       throw new UnauthorizedException('User password missing');
     }
-  
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+   
+     const isPasswordValid = bcrypt.compareSync(password,user.password );
+     console.log(password, user.password);
+    console.log('Is password valid?', isPasswordValid);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -156,9 +149,13 @@ export class AuthService {
       email: user.email,
       role: user.role.name,
     };
-
+    //console.log(payload)
     const { accessToken, refreshToken } = this.buildTokens(payload);
-
+    console.log( accessToken, refreshToken , user, {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    })
     return {
       accessToken,
      refreshToken,
@@ -236,11 +233,15 @@ export class AuthService {
     if (!oldPassword || !newPassword) {
       throw new BadRequestException('Old and new password are required');
     }
-
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['role'],
-    });
+    const user = await this.userRepo
+    .createQueryBuilder('user')
+    .addSelect('user.password')
+    .where('user.id = :id', { id: userId })
+    .getOne();
+    // const user = await this.userRepo.findOne({
+    //   where: { id: userId },
+    //   relations: ['role'],
+    // });
     if (!user || !user.password) {
       throw new UnauthorizedException('User not found');
     }
@@ -256,5 +257,9 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
   
+}
+
+function save(hashedPassword: string) {
+  throw new Error('Function not implemented.');
 }
     

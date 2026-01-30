@@ -5,8 +5,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 
-const url = 'http://localhost:8006';
-
+// const url = 'http://localhost:8006';
+const PORT = process.env.PORT ?? 8006;
 async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
@@ -20,9 +20,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  
-  await app.listen(process.env.PORT ?? 8002);
-  console.log(`Application is running on: ${url}`);
+  //app.setGlobalPrefix('api');
+  await app.listen(PORT);
+  console.log(`Application is running on: http://localhost:${PORT}`);
 }
 bootstrap();
 
