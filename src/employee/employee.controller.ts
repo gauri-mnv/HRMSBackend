@@ -40,7 +40,7 @@ export class EmployeeController {
 
   // POST /emps/from-user/:userId -> Create employee record from existing user (admin).
   // @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
+  // @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
   @Post('emps/from-user/:userId')
   createFromUser(@Param('userId') userId: string) {
     return this.employeeService.createFromUserId(userId);

@@ -18,6 +18,7 @@ export class RolesGuard implements CanActivate {
     );
 
     if (!requiredRoles || requiredRoles.length === 0) return true;
+    console.log('Required Roles:', requiredRoles);
 
     const request = context.switchToHttp().getRequest();
     const user = request.user as { role?: string } | undefined;
@@ -25,7 +26,7 @@ export class RolesGuard implements CanActivate {
       return false; // prevent 500
     }
     if (!user?.role) throw new ForbiddenException('User role missing');
-
+    console.log('User Role from Token:', user.role);
     if (!requiredRoles.includes(user.role)) {
       throw new ForbiddenException('Insufficient permissions');
     }

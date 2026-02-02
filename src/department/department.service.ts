@@ -23,7 +23,11 @@ export class DepartmentService {
     const dept = this.deptRepo.create({
       dept_name: dto.dept_name,
       description: dto.description,
-    //   manager_id:dto.manager_id,
+
+      // manager_id:dto.,
+    // created_at: dto.created_at,
+
+    
     });
 
     if (dto.manager_id) {
@@ -36,10 +40,29 @@ export class DepartmentService {
 
   // 2. List all Departments (with Manager info)
   async findAll() {
-    return this.deptRepo.find({
-      relations: ['manager'], // Show who the manager is
-    });
-  }
+    // return this.deptRepo.find({
+    //   relations: ['manager'], // Show who the manager is
+    // });
+
+      const departments = await this.deptRepo.find({
+        relations: ['manager', 'employees'], // Load employees to show 'Total Staff'
+      });
+    
+      // Transform the data into a cleaner format for the frontend
+      return departments.map((dept) => ({
+        dept_id: dept.dept_id,
+        dept_name: dept.dept_name,
+        description: dept.description,
+        // Flatten manager data so the frontend doesn't have to do dept.manager?.emp_first_name
+        manager_name: dept.manager 
+          ? `${dept.manager.emp_first_name} ${dept.manager.emp_last_name}` 
+          : 'Not Assigned',
+        manager_id: dept.manager?.emp_id || null,
+        total_employees: dept.employees?.length || 0,
+        created_at: dept.created_at,
+      }));
+    }
+  
 
   // 3. Get Specific Department + Employee List
   async findOne(id: string) {

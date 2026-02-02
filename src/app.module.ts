@@ -10,6 +10,7 @@ import {TypeOrmModule} from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DepartmentModule } from './department/department.module';
+import { AttendanceModule } from './attendance/attendance.module';
 
 @Module({
 
@@ -19,7 +20,7 @@ import { DepartmentModule } from './department/department.module';
     EmployeeModule,
     UsersModule,
     DepartmentModule,
-    
+    AttendanceModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

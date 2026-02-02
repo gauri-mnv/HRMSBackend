@@ -7,12 +7,14 @@ import { AuthModule } from 'src/auth/auth.module';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { Role } from 'src/roles/role.entity';
 import { DataSource } from 'typeorm';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
   forwardRef(() => EmployeeModule),
   forwardRef(() => AuthModule),
+  forwardRef(() => RolesModule),
       ],
   controllers: [UsersController],
   providers: [UsersService,

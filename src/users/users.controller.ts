@@ -26,22 +26,22 @@ export class UsersController {
       return this.usersService.findAll();
     }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
   @Post('add_users')
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
   @Get('users/:user_id')
   findOne(@Param('user_id') id: string) {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER)
   @Patch('update_users/:user_id')
   update(
     @Param('user_id') id: string,
@@ -50,8 +50,8 @@ export class UsersController {
     return this.usersService.update(id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(RoleEnum.ADMIN)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(RoleEnum.ADMIN)
   @Delete('users/:user_id')
   remove(@Param('user_id') id: string) {
     return this.usersService.remove(id);

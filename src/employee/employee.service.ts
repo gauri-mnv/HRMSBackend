@@ -7,19 +7,27 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { User } from '../users/entities/user.entity';
 import { RoleEnum } from '../common/enums/role.enum';
 import { AuthService } from 'src/auth/auth.service';
+import { UsersService } from 'src/users/users.service';
+import { Department } from 'src/department/entities/department.entity';
 
 @Injectable()
 export class EmployeeService {
-  userRepo: any;
+
   constructor(
   
     @InjectRepository(Employee)
     private employeeRepo: Repository<Employee>,
     // @InjectRepository(User)
     // private readonly userRepo: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
 
+    // @InjectRepository(Department)
+    // private readonly departmentRepo: Repository<Department>,
     @Inject(forwardRef(() => AuthService))
     private authService: AuthService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   async findAll() {
@@ -77,6 +85,17 @@ export class EmployeeService {
   }
 
   async create(dto: CreateEmployeeDto) {
+    const user = await this.userRepo.findOne({ where: { id: dto.userId }, relations: ['role'] });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    // const newEmployee = this.employeeRepo.create({
+    //   ...dto,
+    //   role: user.role, // Automatically uses the role assigned to the user
+    // });
+    
+    // return await this.employeeRepo.save(newEmployee);
+
     const employee = this.employeeRepo.create({
       emp_code: dto.emp_code,    
       emp_first_name: dto.emp_first_name,
@@ -89,6 +108,7 @@ export class EmployeeService {
       user: dto.user?? null,
       manager: dto.manag_id ? ({ id: dto.manag_id } as any) : null,
       emp_status: dto.emp_status?.toLowerCase() as any,
+      role: user.role,
       // role_id: dto.role_id? ({ id: dto.role_id } as unknown as string) : null ,
       // role: dto.role_name ? ({ name: dto.role_name } as any) : null,
       // emp_dob: dto.emp_dob ? new Date(dto.emp_dob) : null,

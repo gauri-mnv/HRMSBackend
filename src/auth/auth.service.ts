@@ -16,9 +16,11 @@ import { RevokedToken } from './revoked-token.entity';
 import { createHash } from 'crypto';
 import { Employee } from 'src/employee/employee.entity';
 import { UsersService } from 'src/users/users.service';
+import { AttendanceService } from 'src/attendance/attendance.service';
 
 @Injectable()
 export class AuthService {
+
   
   constructor(
     @Inject(forwardRef(() => UsersService))private readonly usersService: UsersService,
@@ -29,6 +31,8 @@ export class AuthService {
     @InjectRepository(RevokedToken)
     private revokedTokenRepo: Repository<RevokedToken>,
     private jwtService: JwtService,
+    @Inject(forwardRef(() => AttendanceService))
+    private attendanceService: AttendanceService,
   ) {}
   async validateUser(userId: string) {
     return this.userRepo.findOne({
@@ -149,6 +153,14 @@ export class AuthService {
       email: user.email,
       role: user.role.name,
     };
+
+    // AUTOMATIC CHECK-IN TRIGGER
+  // We call the attendance service right here during the sign-in process
+  try {
+    await this.attendanceService.autoCheckIn(user.id);
+  } catch (err) {
+    console.log("User already checked in for today, skipping auto-check-in.");
+  }
     //console.log(payload)
     const { accessToken, refreshToken } = this.buildTokens(payload);
     console.log( accessToken, refreshToken , user, {
@@ -169,6 +181,8 @@ export class AuthService {
 
   //logout 
   async logout(token: string) {
+    // Automatically trigger the attendance checkout
+ 
     console.log("t",token)
     if (!token) return;
 
@@ -182,11 +196,12 @@ export class AuthService {
   if (exists) {
     throw new UnauthorizedException('Token revoked');
   }
+  await this.attendanceService.autoCheckOut(token);
   if (!exists) {
     await this.revokedTokenRepo.save({ token: hashed });
   }
 
-  return { message: 'Logged out successfully' };
+  return { message: 'Logged out successfully ,attendance record ' };
   }
 
   async refresh(refreshToken: string) {

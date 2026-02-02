@@ -5,6 +5,8 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { EmployeeService } from 'src/employee/employee.service';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +18,18 @@ export class UsersService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @Inject(forwardRef(() => AuthService)) 
     private authService: AuthService,
+
+    @Inject(forwardRef(() => EmployeeService)) // Index [2] that was causing the '?' error
+    private  employeeService: EmployeeService,
+
+    @Inject(forwardRef(() => RolesService)) 
+    private  rolesService: RolesService,
+
+    // @Inject(forwardRef(() => UsersService))
+    // private usersService: UsersService,
+
+    // @Inject(forwardRef(() => UsersService)) private usersService: UsersService,
+   
   ) {}
   async findAll() {
     // const users = await this.userRepo.find({
@@ -87,7 +101,7 @@ export class UsersService {
       relations: ['role'],
       order: { email: 'ASC' },
     });
-     console.log("users data",users);   
+     //console.log("users data",users);   
     return users.map((u) => ({
       id: u.id,
       email: u.email,

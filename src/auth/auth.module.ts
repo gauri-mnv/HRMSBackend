@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { UsersModule } from 'src/users/users.module';
 import { Employee } from 'src/employee/employee.entity';
+import { AttendanceModule } from 'src/attendance/attendance.module';
 
 // const expiresIn =config.get<string>('JWT_EXPIRES_IN') ?? '1w';
 
@@ -62,8 +63,9 @@ import { Employee } from 'src/employee/employee.entity';
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([User, Role,Employee, RevokedToken]),
-    forwardRef(() => EmployeeModule),
     forwardRef(() => UsersModule),
+    forwardRef(() => EmployeeModule),
+    forwardRef(() => AttendanceModule),
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secretkey',

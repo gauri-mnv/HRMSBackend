@@ -20,13 +20,13 @@ import { Department } from 'src/department/entities/department.entity';
 @Entity('employees')
 export class Employee {
   @PrimaryGeneratedColumn('uuid')
-  emp_id: string;//
+  emp_id: string| "EMPID-000";//
 
-  @Column({ unique: true,  nullable: true  })
-  emp_code: string;//
+  @Column({ unique: true,  nullable: false })
+  emp_code: string|"EMPCODE-000";//
 
   @Column({ length: 255 ,  nullable: true })
-  emp_first_name: string;//
+  emp_first_name: string ;//
 
   @Column({ length: 255 ,  nullable: true })
   emp_last_name: string;//
@@ -38,15 +38,15 @@ export class Employee {
   emp_phone: string;//
 
   @Column({ type: 'date' , nullable: true })
-  emp_date_of_joining: Date| null;//
+  emp_date_of_joining: Date| 20;//
 
 
   @Column({ type: 'enum', enum: ['active', 'resigned','inactive'], default: 'active'})
-  emp_status: 'active' | 'resigned'|'inactive';//
+  emp_status: 'active' | 'resigned'|'inactive';
   
 
   @Column({ type: 'date', nullable: true })
-  emp_dob: Date | null;//
+  emp_dob: Date | "add DOB";//
 
   @Column({ type: 'varchar', nullable: true  })
   emp_gender: string | any;//
@@ -72,9 +72,9 @@ export class Employee {
   // @JoinColumn({ name: 'job_id' })
   // job: Job | null;
 
-  @ManyToOne(() => Role, { nullable: true })
+  @ManyToOne(() => Role, { nullable: false })
   @JoinColumn({ name: 'role_id' })
-  role: Role | null;//
+  role: Role |null;//
 
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'manager_id' })
@@ -97,6 +97,8 @@ export class Employee {
 
   @DeleteDateColumn({ type: 'timestamptz' })
   deleted_at: Date | null;//
+    attendance: any;
+    leaves: any;
  
 
 

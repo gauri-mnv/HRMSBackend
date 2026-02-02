@@ -10,7 +10,7 @@ import {
   import { RoleEnum } from '../common/enums/role.enum';
   
   @Controller('depts')
-  @UseGuards(JwtAuthGuard, RolesGuard) // Protect all routes
+  //@UseGuards(JwtAuthGuard, RolesGuard) // Protect all routes
   export class DepartmentController {
     constructor(private readonly deptService: DepartmentService) {}
   
@@ -18,7 +18,9 @@ import {
     @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
     @Get()
     findAll() {
-      return this.deptService.findAll();
+      console.log("depts")
+       return this.deptService.findAll();
+     // return "depts"
     }
   
     // POST /add_depts -> Create a new department

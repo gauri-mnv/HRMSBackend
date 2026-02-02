@@ -69,6 +69,7 @@ export class CreateEmployeeDto {
   role_id?:any;
   user:User;
   role_name: string|Role;
+  userId: any;
 
 }
 
