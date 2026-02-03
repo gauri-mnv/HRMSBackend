@@ -11,6 +11,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DepartmentModule } from './department/department.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { LeavesModule } from './leave/leaves.module';
+import { PayrollModule } from './payroll/payroll.module';
 
 @Module({
 
@@ -21,6 +23,8 @@ import { AttendanceModule } from './attendance/attendance.module';
     UsersModule,
     DepartmentModule,
     AttendanceModule,
+    LeavesModule,
+    PayrollModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

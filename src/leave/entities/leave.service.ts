@@ -85,4 +85,52 @@ export class LeaveService {
     application.status = status;
     return await this.appRepo.save(application);
   }
+
+  async getAllApplications() {
+    const list = await this.appRepo.find({
+      relations: ['employee', 'leave_type'],
+      order: { applied_at: 'DESC' },
+    });
+    return list.map((app) => ({
+      request_id: app.id,
+      employee_name: app.employee
+        ? `${app.employee.emp_first_name} ${app.employee.emp_last_name}`.trim()
+        : '—',
+      leave_type: app.leave_type?.leave_type_name ?? '—',
+      start_date: app.start_date,
+      end_date: app.end_date,
+      total_days: app.total_days,
+      status: app.status,
+      reason: app.reason,
+    }));
+  }
+
+  async getApplicationsByUserId(userId: string) {
+    // First find the employee linked to this user
+    const employee = await this.empRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!employee) {
+      return []; // Return empty array if no employee found
+    }
+
+    // Then fetch leave applications for this employee
+    const list = await this.appRepo.find({
+      where: { employee: { emp_id: employee.emp_id } },
+      relations: ['employee', 'leave_type'],
+      order: { applied_at: 'DESC' },
+    });
+    
+    return list.map((app) => ({
+      request_id: app.id,
+      leave_type: app.leave_type?.leave_type_name ?? '—',
+      start_date: app.start_date,
+      end_date: app.end_date,
+      total_days: app.total_days,
+      status: app.status,
+      reason: app.reason,
+    }));
+  }
 }

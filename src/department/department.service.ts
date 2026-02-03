@@ -18,23 +18,18 @@ export class DepartmentService {
     private readonly authService: AuthService,
       ) {}
 
-  // 1. Create Department
   async create(dto: CreateDepartmentDto) {
     const dept = this.deptRepo.create({
       dept_name: dto.dept_name,
       description: dto.description,
-
-      // manager_id:dto.,
-    // created_at: dto.created_at,
-
-    
+      average_salary: dto.average_salary ?? null,
+      currency: dto.currency ?? 'INR',
+      pay_frequency: dto.pay_frequency ?? 'monthly',
     });
-
     if (dto.manager_id) {
       const manager = await this.empRepo.findOneBy({ emp_id: dto.manager_id });
       if (manager) dept.manager = manager;
     }
-
     return this.deptRepo.save(dept);
   }
 
@@ -48,17 +43,24 @@ export class DepartmentService {
         relations: ['manager', 'employees'], // Load employees to show 'Total Staff'
       });
     
-      // Transform the data into a cleaner format for the frontend
+      // Transform the data into a cleaner format for the frontend (include employees list)
       return departments.map((dept) => ({
         dept_id: dept.dept_id,
         dept_name: dept.dept_name,
         description: dept.description,
-        // Flatten manager data so the frontend doesn't have to do dept.manager?.emp_first_name
-        manager_name: dept.manager 
-          ? `${dept.manager.emp_first_name} ${dept.manager.emp_last_name}` 
+        average_salary: dept.average_salary != null ? Number(dept.average_salary) : null,
+        currency: dept.currency ?? 'INR',
+        pay_frequency: dept.pay_frequency ?? 'monthly',
+        manager_name: dept.manager
+          ? `${dept.manager.emp_first_name} ${dept.manager.emp_last_name}`
           : 'Not Assigned',
         manager_id: dept.manager?.emp_id || null,
         total_employees: dept.employees?.length || 0,
+        employees: (dept.employees ?? []).map((e) => ({
+          emp_id: e.emp_id,
+          emp_code: e.emp_code,
+          emp_name: `${e.emp_first_name ?? ''} ${e.emp_last_name ?? ''}`.trim() || e.emp_email,
+        })),
         created_at: dept.created_at,
       }));
     }
@@ -75,18 +77,44 @@ export class DepartmentService {
     return dept;
   }
 
+  // Get employees for a specific department (for manager dropdown)
+  async getEmployeesByDepartment(deptId: string) {
+    const employees = await this.empRepo.find({
+      where: { department: { dept_id: deptId } },
+      relations: ['department'],
+      order: { emp_first_name: 'ASC' },
+    });
+    return employees.map((emp) => ({
+      emp_id: emp.emp_id,
+      emp_code: emp.emp_code,
+      emp_name: `${emp.emp_first_name ?? ''} ${emp.emp_last_name ?? ''}`.trim() || emp.emp_email,
+      emp_email: emp.emp_email,
+    }));
+  }
+
   // 4. Update Department
   async update(id: string, dto: UpdateDepartmentDto) {
     const dept = await this.findOne(id);
     
-    // Update basic fields
     if (dto.dept_name) dept.dept_name = dto.dept_name;
-    if (dto.description) dept.description = dto.description;
+    if (dto.description !== undefined) dept.description = dto.description;
+    if (dto.average_salary !== undefined) dept.average_salary = dto.average_salary as any;
+    if (dto.currency !== undefined) dept.currency = dto.currency;
+    if (dto.pay_frequency !== undefined) dept.pay_frequency = dto.pay_frequency;
 
-    // Update Manager if provided
-    if (dto.manager_id) {
-      const manager = await this.empRepo.findOneBy({ emp_id: dto.manager_id });
-      if (manager) dept.manager = manager;
+    // Allow setting OR clearing manager.
+    // Frontend sends "" when selecting "None".
+    if (dto.manager_id !== undefined) {
+      const managerId = String(dto.manager_id).trim();
+      if (!managerId) {
+        dept.manager = null as any;
+      } else {
+        const manager = await this.empRepo.findOneBy({ emp_id: managerId });
+        if (!manager) {
+          throw new NotFoundException('Selected manager not found');
+        }
+        dept.manager = manager;
+      }
     }
 
     return this.deptRepo.save(dept);

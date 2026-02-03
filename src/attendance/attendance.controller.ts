@@ -45,21 +45,22 @@ async findAll() {
     );
   }
 }
-  // 1. MUST COME FIRST: Specific static route
   @Get('me')
-  async getMyAttendance(@Req() req) {
-    console.log(req.user)
-    const userId = req.user?.id || req.user?.sub;
-    console.log(userId)
+  @UseGuards(JwtAuthGuard)
+  async getMyAttendance(@Req() req: any) {
+    const userId = req.user?.userId ?? req.user?.sub ?? req.user?.id;
+    console.log("attendance me ",userId)
     if (!userId) {
       throw new NotFoundException('User not found');
     }
     try {
       const records = await this.attendanceService.getMyAttendance(userId);
+      console.log("attendance me ",records)
       return {
         success: true,
         data: records,
       };
+      
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -87,11 +88,10 @@ async findAll() {
 //     return this.attendanceService.checkOut(userId);
 //   }
 
-  // 4. Dynamic routes MUST come after static routes
   @Get(':at_emp_id')
-//   @Roles(RoleEnum.ADMIN, RoleEnum.HR)
   async getByEmployee(@Param('at_emp_id') id: string) {
-    return this.attendanceService.getAttendanceByEmployee(id);
+    const records = await this.attendanceService.getAttendanceByEmployee(id);
+    return { success: true, data: records };
   }
 
 }

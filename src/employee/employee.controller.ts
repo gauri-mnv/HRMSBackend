@@ -53,12 +53,16 @@ export class EmployeeController {
   }
 
   // GET /employee/me -> Retrieve currently logged-in employee (by user id).
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('employee/me')
   findMe(@Req() req: any) {
-    return this.employeeService.findByUserId(req.user.userId);
+    const userId = req.user?.userId ?? req.user?.sub;
+    return this.employeeService.findByUserId(userId);
   }
-
+  @Get('emp-code/:userId')
+  getEmpCode(@Param('userId') userId: string) {
+    return this.employeeService.getOrCreateEmpCode(userId);
+  }
   // PATCH /update_emps/:emp_id -> Update a specific employee.
   @Patch('update_emps/:emp_id')
   update(
@@ -69,10 +73,11 @@ export class EmployeeController {
   }
 
   // PATCH /employee/me -> Employee self-service update (limited fields).
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('employee/me')
   updateMe(@Req() req: any, @Body() dto: UpdateEmployeeDto) {
-    return this.employeeService.updateByUserId(req.user.userId, dto);
+    const userId = req.user?.userId ?? req.user?.sub;
+    return this.employeeService.updateByUserId(userId, dto);
   }
 
   // DELETE /emps/:emp_id -> Soft delete a specific employee.

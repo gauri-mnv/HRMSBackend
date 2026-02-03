@@ -53,14 +53,12 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@Req() req: Request) {
+  logout(@Req() req: Request & { user?: { userId?: string; sub?: string; id?: string } }) {
     const authHeader = req.headers.authorization;
-    if (!authHeader) return;
-    //const userId = req.user.id; // Extracted from JWT
-    //return this.authService.logout(userId);
+    if (!authHeader) return { message: 'Logged out successfully' };
     const token = authHeader.split(' ')[1];
-    return this.authService.logout(token);
-   
+    const userId = req.user?.userId ?? req.user?.sub ?? req.user?.id;
+    return this.authService.logout(token, userId);
   }
 
   @Post('refresh')

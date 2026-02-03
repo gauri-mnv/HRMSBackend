@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
 export class CreateDepartmentDto {
@@ -11,7 +11,19 @@ export class CreateDepartmentDto {
   description?: string;
 
   @IsOptional()
+  @IsNumber()
+  average_salary?: number;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  pay_frequency?: string;
+
+  @IsOptional()
   @IsUUID()
-  manager_id?: string; // We will pass the UUID of the employee who is the manager
-  created_at: DeepPartial<Date> | undefined;
+  manager_id?: string;
+  created_at?: DeepPartial<Date>;
 }

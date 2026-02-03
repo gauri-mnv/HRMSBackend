@@ -16,9 +16,21 @@ import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
 
+  handleRequest<TUser>(err: Error | null, user: TUser | false, info: Error | null): TUser {
+    if (err) {
+      throw new UnauthorizedException(err.message || 'Token verification failed');
+    }
+    if (!user) {
+      const msg = info?.message ?? 'Invalid or expired token';
+      throw new UnauthorizedException(typeof msg === 'string' ? msg : 'Invalid or expired token');
+    }
+    return user;
+  }
+
   constructor(
     private jwtService: JwtService,
     private authService: AuthService,
+    
     @InjectRepository(RevokedToken)
     private readonly revokedTokenRepo: Repository<RevokedToken>,
     @InjectRepository(User)

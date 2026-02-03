@@ -19,6 +19,12 @@ export class LeaveApplication {
   @Column({ default: 'Pending' }) // Pending, Approved, Rejected
   status: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  approved_by: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  approved_at: Date | null;
+
   @Column({ type: 'decimal', precision: 5, scale: 1 })
   total_days: number;
 

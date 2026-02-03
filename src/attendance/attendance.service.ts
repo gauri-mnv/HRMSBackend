@@ -7,10 +7,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 // src/attendance/attendance.service.ts
 @Injectable()
 export class AttendanceService {
-    attendanceRepo: any;
-  getAttendanceByEmployee(id: string) {
-      throw new Error("Method not implemented.");
-  }
   constructor(
     @InjectRepository(Attendance) private atRepo: Repository<Attendance>,
     @InjectRepository(Employee) private empRepo: Repository<Employee>,
@@ -121,43 +117,79 @@ async autoCheckOut(userId: string) {
   }
 
   async getMyAttendance(userId: string) {
-    return this.atRepo.find({ 
-      where: { employee: { user: { id: userId } } },
-      order: { at_date: 'DESC' } 
+    // First find the employee linked to this user
+    const employee = await this.empRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
+
+    if (!employee) {
+      return []; // Return empty array if no employee found
+    }
+
+    // Then fetch attendance records for this employee
+    const records = await this.atRepo.find({
+      where: { employee: { emp_id: employee.emp_id } },
+      order: { at_date: 'DESC' },
+    });
+    
+    return records.map((log) => ({
+      at_id: log.at_id,
+      at_date: log.at_date,
+      at_in_time: log.at_in_time ?? null,
+      at_out_time: log.at_out_time ?? null,
+      at_status: log.at_status ?? 'Present',
+      overtime_minutes: log.overtime_minutes ?? 0,
+    }));
   }
 
-  // src/attendance/attendance.service.ts
   async getAllAttendance() {
-    const records = await this.attendanceRepo.find({
-      relations: {
-        employee: true, // or user: true (based on your entity)
-      },
-      order: {
-        created_at: 'DESC',
-      },
+    const records = await this.atRepo.find({
+      relations: ['employee'],
+      order: { created_at: 'DESC' },
     });
-  
     if (!records || records.length === 0) {
       throw new NotFoundException('No attendance records found');
     }
-  
     return records;
   }
   
-async findAll() {
+  async findAll() {
     const records = await this.atRepo.find({
       relations: ['employee'],
-      order: { at_date: 'DESC' }
+      order: { at_date: 'DESC' },
     });
-  console.log("attendance")
-    return records.map(log => ({
+    return records.map((log) => ({
       at_id: log.at_id,
       at_date: log.at_date,
       emp_name: `${log.employee.emp_first_name} ${log.employee.emp_last_name}`,
       at_in_time: log.at_in_time,
-      at_out_time: log.at_out_time || 'Working...', // Visual cue for active sessions
-      at_status: log.at_status
+      at_out_time: log.at_out_time || 'Working...',
+      at_status: log.at_status,
+      device_type: log.device_type,
+      location: log.location,
+      overtime_minutes: log.overtime_minutes,
+    }));
+  }
+
+  async getAttendanceByEmployee(empId: string) {
+    const records = await this.atRepo.find({
+      where: { employee: { emp_id: empId } },
+      relations: ['employee'],
+      order: { at_date: 'DESC' },
+    });
+    return records.map((log) => ({
+      at_id: log.at_id,
+      at_date: log.at_date,
+      emp_name: log.employee
+        ? `${log.employee.emp_first_name ?? ''} ${log.employee.emp_last_name ?? ''}`.trim() || log.employee.emp_email
+        : '—',
+      at_in_time: log.at_in_time,
+      at_out_time: log.at_out_time,
+      at_status: log.at_status,
+      device_type: log.device_type,
+      location: log.location,
+      overtime_minutes: log.overtime_minutes,
     }));
   }
 }

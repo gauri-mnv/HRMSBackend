@@ -19,6 +19,15 @@ export class Attendance {
   @Column({ default: 'present' }) // e.g., present, late, absent
   at_status: string;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  device_type: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  location: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  overtime_minutes: number;
+
   @ManyToOne(() => Employee, (emp) => emp.attendance, { onDelete: 'CASCADE' })
   employee: Employee;
 

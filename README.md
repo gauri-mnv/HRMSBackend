@@ -1,87 +1,159 @@
-# 🧑‍💼 Human Resource Management System (HRMS)
 
-## 📅 Work Summary (Today)
+#  HRMS — Human Resource Management System
 
-This README documents the progress and UI/API-related work completed today for the **HRMS (Human Resource Management System)** project. The focus was on **authentication, role-based access, and foundational screens**.
+## 🧠 Project Overview
 
----
+**HRMS** is a full-stack Human Resource Management System that covers employee management, attendance, leave, payroll, roles, departments, and admin/HR  workflows with other departments also via intuitive dashboards for admins and employees.
 
-## 🔐 Authentication & Access Screens
+This system provides:
 
-### 🔹 Admin Login
-
-![Admin Login](https://i.ibb.co/LDxHtPVf/admin-login.png)
-
-### 🔹 Admin Dashboard
-
-![Admin Dashboard](https://i.ibb.co/NdWBMP7R/admin.png)
-
----
-
-## 👥 User Roles & Hierarchy
-
-The following role-based views and setups were implemented and verified:
-
-### 🔹 Founder
-
-![Founder](https://i.ibb.co/DP9yGVSD/founder.png)
-
-### 🔹 Single Founder View
-
-![One Founder](https://i.ibb.co/YTFbSttT/one-founder.png)
-
-### 🔹 Co‑Founder
-
-![Co-Founder](https://i.ibb.co/7MTbTFp/co-Founder.png)
-
-### 🔹 HR Role
-
-![HR](https://i.ibb.co/GQfDf1KX/hr.png)
-
----
-
-## 🧩 Role Management
-
-### 🔹 Roles Configuration
-
-![Roles](https://i.ibb.co/0pzgf618/roles.png)
-
-This screen validates:
-
-* Role creation
-* Role hierarchy
-* Role assignment readiness
-
----
-
-## 🏠 HRMS Overview
-
-### 🔹 HRMS Landing / Overview Screen
-
-![HRMS](https://i.ibb.co/PG0FtXz6/hrms.png)
-
----
-
-## ✅ Key Achievements Today
-
-* Implemented **Admin authentication & login flow**
-* Designed and verified **role-based access views** (Founder, Co‑Founder, HR)
-* Structured **role management UI**
-* Validated **founder constraints** (single founder logic)
-* Established **HRMS base dashboard structure**
-
----
-
-## 🚀 Next Steps
-
+* Secure login for Admin, HR and employees
 * Employee CRUD & profile management
-* Role-to-permission mapping
-* Attendance & leave module
-* API integration with frontend
+* Attendance logging and records
+* Leave request creation & approval workflows
+* Payroll overview
+* Role & Department management
 
 ---
 
-📌 *This README will be updated as the HRMS project evolves.*
+## 🚀 Features (Short Description)
+
+| Feature                 | Description                                           |
+| ----------------------- | ----------------------------------------------------- |
+| **Admin Panel**         | Central dashboard for HR/Admin controls               |
+| **Employee Dashboard**  | Personal employee view of attendance, leave & payroll |
+| **Attendance Logging**  | Employees can log attendance, view history            |
+| **Leave Management**    | Submit, view and approve leave requests               |
+| **Payroll Summary**     | Payroll data overview                                 |
+| **Roles & Departments** | Admin manages roles and department assignments        |
+| **User Profile**        | View & edit personal profile                          |
+
+---
+
+## 🧩 Tech Stack
+
+**Frontend**
+
+* React.js / Next.js
+* Material UI
+* Axios
+
+**Backend**
+
+* Node.js
+* Express
+* MongoDB (or other DB)
+* JWT Auth
+
+---
+
+## 🖼️ Screenshots
+
+### Auth & Login
+
+![Signin](https://i.ibb.co/4Rvzd4xw/signin.png)
+![Admin Login](https://i.ibb.co/b5Gxhh5G/admin-login.png)
+
+### Dashboards
+
+![Admin Dashboard](https://i.ibb.co/BHxpXHnP/admindashboard.png)
+![Employee Dashboard](https://i.ibb.co/VcKms86S/emp-Dashboard.png)
+
+---
+
+### Employee & Admin Features
+
+#### Employee Views
+
+![Attendance - Employee](https://i.ibb.co/TnY35HW/attendanceemp.png)
+![Employee Leave](https://i.ibb.co/5hd2Yqzc/EMPLEAVE.png)
+![User Profile](https://i.ibb.co/Kpj2DwtD/userprofile.png)
+
+#### Admin Views
+
+![Attendance Log](https://i.ibb.co/XZPksz3m/attendance-log.png)
+![Leave Requests All Employees](https://i.ibb.co/FLc3cq4g/leaverequest-all-employee.png)
+![Employees Details](https://i.ibb.co/RpYqn5Y8/employees-details.png)
+![Add/Edit Employee](https://i.ibb.co/kV7cFFZm/add-employee-issue.png)
+![Edit Employee from Admin](https://i.ibb.co/mrWTb7k2/edit-Emp-From-Admin.png)
+
+---
+
+### Organizational Views
+
+![Departments with Employees](https://i.ibb.co/35mGmnww/departments-with-emp.png)
+![Roles](https://i.ibb.co/vv6tmvxm/roles.png)
+![Payroll](https://i.ibb.co/N6nrcmGB/payroll.png)
+![Leave Summary](https://i.ibb.co/FNzvcGc/leave.png)
+
+---
+
+### Branding & People
+
+![HRMS Branding](https://i.ibb.co/kVdm3dvv/hrms.png)
+![Founder](https://i.ibb.co/nqv8YcM9/founder.png)
+![Co-Founder](https://i.ibb.co/ZzPvRWDV/co-Founder.png)
+![One Founder](https://i.ibb.co/LX3qdh4L/one-founder.png)
+
+
+## 🛠️ Installation
+
+### Backend
+
+```bash
+git clone <repo-url>
+cd backend
+npm install
+npm run dev
+```
+
+Configure `.env`
+
+```
+PORT=8006
+DB_URI=<your db uri>
+JWT_SECRET=<your secret>
+```
+
+---
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Configure `.env.local`
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8006
+```
+
+---
+
+## ✔️ Usage
+
+1. Visit `http://localhost:3000`
+2. Register/Login as Admin/Employee
+3. Configure roles & departments
+4. Add employees
+5. Use attendance and leave features
+
+---
+
+## 👤 Creator
+
+**🚀 Created by:** *Gauri Bidwai*
+
+---
+
+## 💡 Open For Updates
+
+This project is **open for improvements and collaboration** — feel free to connect and contribute!
+
+
 
 
 

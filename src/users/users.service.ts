@@ -8,8 +8,11 @@ import { AuthService } from 'src/auth/auth.service';
 import { EmployeeService } from 'src/employee/employee.service';
 import { RolesService } from 'src/roles/roles.service';
 
+
+
 @Injectable()
 export class UsersService {
+  employeeRepo: any;
   // constructor(
   //   @InjectRepository(User)
   //   private readonly userRepo: Repository<User>,
@@ -46,17 +49,51 @@ export class UsersService {
 
     return this.findAllSafe();
   }
-  findOne(id: string) {
-    throw new Error('Method not implemented.');
+  
+  // ----- CRUD used by UsersController -----
+  async findOne(id: string): Promise<User> {
+    // Reuse existing helper so behaviour is consistent
+    return this.findOneById(id);
   }
-  remove(id: string) {
-    throw new Error('Method not implemented.');
+
+  async create(dto: CreateUserDto): Promise<User> {
+    // Resolve role from role_id in DTO
+    const role = await this.rolesService.findOne(dto.role_id);
+
+    const existing = await this.userRepo.findOne({ where: { email: dto.email.toLowerCase() } });
+
+    if (existing) {
+      throw new InternalServerErrorException('User with this email already exists');
+    }
+    const bcrypt = await import('bcrypt');
+    // const user = this.userRepo.create({
+    //   email: dto.email.toLowerCase(),
+    //   // Password is already validated for length by DTO; hashing is done in AuthService signup,
+    //   // but for admin-created users we still need a hash here.
+    //   // Delegate to AuthService.signup to keep hashing logic in one place.
+    // } as any);
+
+    // // Let AuthService handle proper hashing & employee creation flow when possible.
+    // // However, AuthService.signup expects roleName, not role_id, so we hash here directly.
+  
+
+    // (user as any).password = await bcrypt.hash(dto.password, 10);
+    // (user as any).role = role;
+    const user = this.userRepo.create({
+      email: dto.email.toLowerCase(),
+      password: await bcrypt.hash(dto.password, 10),
+      role: role,
+    });
+    return this.userRepo.save(user); }
+
+  async update(id: string, dto: UpdateUserDto): Promise<User> {
+    // Delegate to existing updateUser helper so validation is centralized
+    return this.updateUser(id, dto);
   }
-  update(id: string, dto: UpdateUserDto) {
-    throw new Error('Method not implemented.');
-  }
-  create(dto: CreateUserDto) {
-    throw new Error('Method not implemented.');
+
+  async remove(id: string): Promise<{ message: string }> {
+    await this.removeUser(id);
+    return { message: 'User deleted successfully' };
   }
   userRepository: any;
 
@@ -87,15 +124,8 @@ export class UsersService {
   //   return user || null;
   // }
 
-  async getUserByEmailWithPassword(email: string): Promise<User | null> {
-    return this.userRepo
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .leftJoinAndSelect('user.role', 'role')
-      .where('user.email = :email', { email })
-      .getOne();
-  }
-
+  
+  
   async findAllSafe() {
     const users = await this.userRepo.find({
       relations: ['role'],
@@ -113,7 +143,7 @@ export class UsersService {
     const userEntity = this.userRepository.create(createUserDto);
     return this.userRepository.save(userEntity);
   }
-  
+
 
   async findOneById(id: string): Promise<User> {
     const foundUser = await this.findById(id);

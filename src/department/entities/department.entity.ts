@@ -19,10 +19,19 @@ import {
     @Column({ unique: true })
     dept_name: string;
   
-    @Column({ nullable: true })
-    description: string;
-  
-    // Relation: One Department has many Employees
+  @Column({ nullable: true })
+  description: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  average_salary: number | null;
+
+  @Column({ type: 'character varying', length: 3, nullable: true, default: 'INR' })
+  currency: string | null;
+
+  @Column({ type: 'character varying', length: 20, nullable: true, default: 'monthly' })
+  pay_frequency: string | null;
+
+  // Relation: One Department has many Employees
     @OneToMany(() => Employee, (employee) => employee.department)
     employees: Employee[];
   

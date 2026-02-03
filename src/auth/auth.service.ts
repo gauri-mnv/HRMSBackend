@@ -98,11 +98,14 @@ export class AuthService {
       if (!existingEmployee) {
         const employee = manager.create(Employee, {
           user,
+          role,
           emp_email: normalizedEmail,
           emp_code: `EMP-${Date.now()}`,
           emp_phone: '',
           emp_date_of_joining: new Date(),
           emp_status: 'active',
+          emp_first_name: '',
+          emp_last_name: '',
         });
         await manager.save(employee);
       
@@ -147,6 +150,16 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    // Check if employee is inactive - block login for inactive employees
+    const employee = await this.employeeRepo.findOne({
+      where: { user: { id: user.id } },
+      relations: ['user'],
+    });
+
+    if (employee && employee.emp_status === 'inactive') {
+      throw new UnauthorizedException('Your account is inactive. Please contact admin.');
+    }
   
     const payload = {
       sub: user.id,
@@ -179,29 +192,32 @@ export class AuthService {
     };
   }
 
-  //logout 
-  async logout(token: string) {
-    // Automatically trigger the attendance checkout
- 
-    console.log("t",token)
-    if (!token) return;
+  // logout: token = JWT string (for revoke), userId = for attendance checkout
+  async logout(token: string, userId?: string) {
+    if (!token) return { message: 'Logged out successfully' };
 
-  const hashed = createHash('sha256')
-    .update(token)
-    .digest('hex');
+    const hashed = createHash('sha256')
+      .update(token)
+      .digest('hex');
 
-  const exists = await this.revokedTokenRepo.findOne({
-    where: { token: hashed },
-  });
-  if (exists) {
-    throw new UnauthorizedException('Token revoked');
-  }
-  await this.attendanceService.autoCheckOut(token);
-  if (!exists) {
+    const exists = await this.revokedTokenRepo.findOne({
+      where: { token: hashed },
+    });
+    if (exists) {
+      throw new UnauthorizedException('Token revoked');
+    }
+
+    // Attendance checkout: use userId from JWT so logout records check-out
+    if (userId) {
+      try {
+        await this.attendanceService.autoCheckOut(userId);
+      } catch (err) {
+        console.warn('Auto check-out on logout:', err);
+      }
+    }
+
     await this.revokedTokenRepo.save({ token: hashed });
-  }
-
-  return { message: 'Logged out successfully ,attendance record ' };
+    return { message: 'Logged out successfully, attendance recorded' };
   }
 
   async refresh(refreshToken: string) {

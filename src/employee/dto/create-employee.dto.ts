@@ -6,10 +6,12 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 import { Role } from 'src/roles/role.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column } from 'typeorm';
+import { IsEmailDomain } from '../../common/validators/email-domain.validator';
 
 export class CreateEmployeeDto {
   @IsString()
@@ -27,7 +29,13 @@ export class CreateEmployeeDto {
   emp_last_name: string;
 
   @IsEmail()
+  @IsEmailDomain()
   emp_email: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 
   @IsString()
   @MaxLength(20)
@@ -43,6 +51,10 @@ export class CreateEmployeeDto {
   @IsOptional()
   @IsInt()
   department_id?: number;
+
+  @IsOptional()
+  @IsString()
+  dept_id?: string; // UUID of department
 
   @IsOptional()
   @IsInt()

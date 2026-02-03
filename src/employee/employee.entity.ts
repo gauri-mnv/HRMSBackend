@@ -84,9 +84,11 @@ export class Employee {
   // @JoinColumn({ name: 'emp_pay_id' })
   // payroll: Payroll | null;
 
-  @ManyToOne(() => Department, (dept) => dept.employees)
+  @ManyToOne(() => Department, (dept) => dept.employees ,{ nullable: true })
   @JoinColumn({ name: 'dept_id' })
-  department: Department;
+  department?: Department;
+
+
   /* ===================== TIME ===================== */
 
   @CreateDateColumn({ type: 'timestamptz' })

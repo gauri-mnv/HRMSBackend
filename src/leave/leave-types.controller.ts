@@ -3,7 +3,7 @@ import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { LeaveService } from "./entities/leave.service";
 
 @Controller('leave_types')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class LeaveTypesController {
   constructor(private readonly leaveService: LeaveService) {}
 

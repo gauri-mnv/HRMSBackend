@@ -69,7 +69,7 @@ import { AttendanceModule } from 'src/attendance/attendance.module';
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secretkey',
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '7d' },
     }),
    
   ],

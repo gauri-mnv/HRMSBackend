@@ -30,20 +30,27 @@ import {
       return this.deptService.create(dto);
     }
   
+    // GET /depts/:dept_id/employees -> Get employees for a department (for manager dropdown)
+    // This route must come BEFORE :dept_id to avoid route conflicts
+    @Get(':dept_id/employees')
+    getEmployeesByDepartment(@Param('dept_id') deptId: string) {
+      return this.deptService.getEmployeesByDepartment(deptId);
+    }
+
     // GET /depts/:dept_id -> Retrieve specific department + working employee list
     @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
     @Get(':dept_id')
     findOne(@Param('dept_id') id: string) {
       return this.deptService.findOne(id);
     }
-  
+
     // PATCH /update_depts/:dept_id -> Update specific department
     @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
     @Patch('update_depts/:dept_id')
     update(@Param('dept_id') id: string, @Body() dto: UpdateDepartmentDto) {
       return this.deptService.update(id, dto);
     }
-  
+
     // DELETE /depts/:dept_id -> Delete specific department
     @Roles(RoleEnum.ADMIN, RoleEnum.FOUNDER, RoleEnum.CO_FOUNDER)
     @Delete(':dept_id')
